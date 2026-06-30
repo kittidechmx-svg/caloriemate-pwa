@@ -45,6 +45,22 @@ export const FOOD_DATABASE = [
   { name: "มะละกอ",          protein: 0.5,  fat: 0.3,  carbs: 10.8, calories: 47.9, unit: "serving", unitGram: 100 },
   { name: "แตงโม",           protein: 0.6,  fat: 0.2,  carbs: 7.6, calories: 34.6, unit: "serving", unitGram: 100 },
 
+  // ─── อาหารไทยสำเร็จรูป ───
+  { name: "ปลาดุกย่าง",       protein: 40,  fat: 6,   carbs: 0,   calories: 220, unit: "ตัว",  unitGram: 200 },
+  { name: "ข้าวมันไก่",        protein: 28,  fat: 16,  carbs: 60,  calories: 520, unit: "จาน", unitGram: 350 },
+  { name: "ส้มตำ",            protein: 5,   fat: 2,   carbs: 20,  calories: 118, unit: "จาน", unitGram: 250 },
+  { name: "ส้มตำปูปลาร้า",     protein: 8,   fat: 4,   carbs: 25,  calories: 180, unit: "จาน", unitGram: 300 },
+  { name: "ผัดกะเพรา",        protein: 28,  fat: 20,  carbs: 8,   calories: 320, unit: "จาน", unitGram: 250 },
+  { name: "ต้มยำกุ้ง",         protein: 18,  fat: 5,   carbs: 8,   calories: 150, unit: "ชาม", unitGram: 400 },
+  { name: "แกงเขียวหวาน",      protein: 20,  fat: 18,  carbs: 10,  calories: 280, unit: "ถ้วย", unitGram: 250 },
+  { name: "ข้าวผัด",           protein: 12,  fat: 12,  carbs: 55,  calories: 380, unit: "จาน", unitGram: 300 },
+  { name: "ไก่ทอด",           protein: 22,  fat: 15,  carbs: 8,   calories: 260, unit: "ชิ้น", unitGram: 100 },
+  { name: "หมูปิ้ง",           protein: 15,  fat: 10,  carbs: 5,   calories: 170, unit: "ไม้",  unitGram: 50  },
+  { name: "ข้าวเหนียว",        protein: 3,   fat: 0,   carbs: 40,  calories: 175, unit: "ปั้น", unitGram: 120 },
+  { name: "ลาบหมู",           protein: 22,  fat: 12,  carbs: 8,   calories: 228, unit: "จาน", unitGram: 200 },
+  { name: "น้ำพริกปลาทู",      protein: 15,  fat: 8,   carbs: 10,  calories: 172, unit: "จาน", unitGram: 150 },
+  { name: "ยำวุ้นเส้น",        protein: 12,  fat: 5,   carbs: 30,  calories: 213, unit: "จาน", unitGram: 250 },
+
   // ─── Fat ───
   { name: "น้ำมัน",           protein: 0,    fat: 100,  carbs: 0,   calories: 900, unit: "ข้อนโต๊ะ", unitGram: 15 },
   { name: "เนยถั่ว",          protein: 20,   fat: 53.4, carbs: 26.7, calories: 667.4, unit: "ข้อนโต๊ะ", unitGram: 15 },

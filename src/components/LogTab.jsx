@@ -13,6 +13,27 @@ function extractGrams(text, food) {
   return food ? food.unitGram : 100; // default 1 หน่วย หรือ 100g
 }
 
+const THAI_FOOD_SYSTEM_PROMPT = `คุณเป็นนักโภชนาการผู้เชี่ยวชาญอาหารไทย คำนวณสารอาหารอย่างแม่นยำ
+
+หลักการวิเคราะห์:
+- พิจารณาวิธีปรุง: ย่าง/ต้ม/นึ่ง (ไขมันต่ำ) vs ทอด/ผัด (ไขมันสูง)
+- ขนาดมาตรฐาน: 1 จาน ≈ 300-400g, 1 ชาม ≈ 400-500g, 1 ทัพพีข้าว ≈ 150g
+- คำนวณจากส่วนผสมครบทั้งจาน รวมน้ำมัน น้ำปลา น้ำตาล ที่ใช้ปรุง
+- อย่าประมาณต่ำเกินจริงเพราะกลัวผิด ให้ใกล้เคียงความเป็นจริงมากที่สุด
+
+ค่าอ้างอิงอาหารไทยทั่วไป:
+- ข้าวสวย 1 ทัพพี (150g): 175 kcal, P:3g, C:39g, F:0g
+- ปลาดุกย่าง 1 ตัว (200g): 220 kcal, P:40g, C:0g, F:6g
+- ส้มตำปูปลาร้า 1 จาน: 180 kcal, P:8g, C:25g, F:4g
+- ผัดกะเพราไก่สับ 1 จาน (ไม่มีข้าว): 320 kcal, P:28g, C:8g, F:20g
+- ต้มยำกุ้ง 1 ชาม: 150 kcal, P:18g, C:8g, F:5g
+- ไก่ทอด 1 ชิ้น (100g): 260 kcal, P:22g, C:8g, F:15g
+- ข้าวมันไก่ 1 จาน: 520 kcal, P:28g, C:60g, F:16g
+- แกงเขียวหวานไก่ 1 ถ้วย: 280 kcal, P:20g, C:10g, F:18g
+
+ตอบเป็น JSON เท่านั้น ห้ามมี markdown หรือข้อความอื่น:
+{"name":"ชื่ออาหารภาษาไทย","serving":"ปริมาณ","calories":number,"protein":number,"carbs":number,"fat":number}`;
+
 async function analyzeFoodWithAI(text, apiKey) {
   if (!apiKey) throw new Error("ไม่พบ API Key (VITE_ANTHROPIC_API_KEY)");
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -24,9 +45,9 @@ async function analyzeFoodWithAI(text, apiKey) {
       "anthropic-dangerous-direct-browser-access": "true"
     },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 400,
-      system: "วิเคราะห์อาหารและตอบเป็น JSON เท่านั้น ห้ามมี markdown format: {\"name\":\"ชื่อภาษาไทย\",\"serving\":\"ปริมาณ\",\"calories\":0,\"protein\":0,\"carbs\":0,\"fat\":0}",
+      model: "claude-sonnet-4-6",
+      max_tokens: 300,
+      system: THAI_FOOD_SYSTEM_PROMPT,
       messages: [{ role: "user", content: "วิเคราะห์: " + text }],
     }),
   });
@@ -102,9 +123,8 @@ export default function LogTab({ entries, mode, onAdd, onDelete }) {
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-6",
-          max_tokens: 400,
-          system: `วิเคราะห์อาหารจากรูปและตอบเป็น JSON เท่านั้น ห้ามมี markdown
-Format: {"name":"ชื่ออาหารภาษาไทย","serving":"ปริมาณที่เห็นในรูป","calories":number,"protein":number,"carbs":number,"fat":number}`,
+          max_tokens: 300,
+          system: THAI_FOOD_SYSTEM_PROMPT,
           messages: [{
             role: "user",
             content: [
