@@ -1,8 +1,8 @@
 export const WORKOUT_MODES = {
-  rest:   { label: "วันพัก",        emoji: "😴", color: "#7c7c9a", goals: { calories: 1800, protein: 60,  carbs: 220, fat: 65 }, tip: "ลด carbs ลง เน้น protein เพื่อ recovery" },
-  cardio: { label: "Cardio Day",    emoji: "🏃", color: "#10AC84", goals: { calories: 2100, protein: 65,  carbs: 300, fat: 60 }, tip: "เพิ่ม carbs เป็น fuel ก่อนวิ่ง" },
-  weight: { label: "Weight Day",    emoji: "🏋️", color: "#FF9F43", goals: { calories: 2300, protein: 90,  carbs: 270, fat: 70 }, tip: "เน้น protein สูงเพื่อ muscle synthesis" },
-  both:   { label: "Cardio+Weight", emoji: "⚡", color: "#a78bfa", goals: { calories: 2600, protein: 100, carbs: 330, fat: 75 }, tip: "ต้องการ calorie สูงสุด ทั้ง carbs และ protein" },
+  rest:   { label: "วันพัก",        emoji: "😴", color: "#7c7c9a", goals: { calories: 1476, protein: 150, carbs: 126, fat: 41 }, tip: "ลด carbs ลง เน้น protein เพื่อ recovery" },
+  cardio: { label: "Cardio Day",    emoji: "🏃", color: "#10AC84", goals: { calories: 1687, protein: 150, carbs: 166, fat: 47 }, tip: "เพิ่ม carbs เป็น fuel ก่อนวิ่ง" },
+  weight: { label: "Weight Day",    emoji: "🏋️", color: "#FF9F43", goals: { calories: 1851, protein: 150, carbs: 198, fat: 51 }, tip: "เน้น protein สูงเพื่อ muscle synthesis" },
+  both:   { label: "Cardio+Weight", emoji: "⚡", color: "#a78bfa", goals: { calories: 2062, protein: 150, carbs: 237, fat: 57 }, tip: "ต้องการ calorie สูงสุด ทั้ง carbs และ protein" },
 };
 
 export const MEAL_SLOTS = ["เช้า", "กลางวัน", "เย็น", "ของว่าง"];
