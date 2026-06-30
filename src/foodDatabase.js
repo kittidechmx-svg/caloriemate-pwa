@@ -56,10 +56,21 @@ export const FOOD_DATABASE = [
   { name: "อะโวคาโด",        protein: 2,    fat: 15,   carbs: 9,   calories: 179, unit: "Portion", unitGram: 100 },
 ];
 
-// หาอาหารจาก database ตามชื่อ (fuzzy match)
+// หาอาหารจาก database — ต้องการ match ที่แม่นพอ ไม่ใช่แค่ substring
 export function findFoodInDatabase(query) {
   const q = query.toLowerCase().trim();
-  return FOOD_DATABASE.find(f => q.includes(f.name.toLowerCase()) || f.name.toLowerCase().includes(q));
+  // ตัดตัวเลข/หน่วยออกเพื่อเทียบความยาวชื่ออาหาร
+  const qCore = q.replace(/[\d\s]+.*/g, "").trim() || q;
+
+  return FOOD_DATABASE.find(f => {
+    const name = f.name.toLowerCase();
+    // ชื่อต้องตรงทั้งหมด หรือ query ต้องขึ้นต้นด้วยชื่ออาหาร
+    const exactMatch = q === name || qCore === name;
+    const startsWithName = q.startsWith(name) && (q[name.length] === " " || q[name.length] === undefined);
+    // ชื่อ database ต้องครอบคลุม ≥60% ของ core query เพื่อกันจับ substring สั้นๆ
+    const coverageOk = name.length / qCore.length >= 0.6;
+    return (exactMatch || startsWithName) && coverageOk;
+  });
 }
 
 // คำนวณ macro ตามปริมาณที่ระบุ (กรัม)
