@@ -1,9 +1,20 @@
 import { useState } from "react";
 import { WORKOUT_PROGRAM } from "../workoutProgram";
 
+const EXERCISE_IMAGES = {
+  day1: { gym: "/exercises/ex_04.jpg", home: "/exercises/ex_05.jpg" },
+  day2: { gym: "/exercises/ex_07.jpg", home: "/exercises/ex_08.jpg" },
+  day3: { gym: "/exercises/ex_10.jpg", home: "/exercises/ex_11.jpg" },
+  day4: null,
+  day5: { gym: "/exercises/ex_14.jpg", home: "/exercises/ex_15.jpg" },
+  day6: { gym: "/exercises/ex_17.jpg", home: "/exercises/ex_18.jpg" },
+  day7: null,
+};
+
 export default function WorkoutTab() {
   const [activeDay, setActiveDay] = useState("day1");
   const [edition, setEdition] = useState("gym");
+  const [showImage, setShowImage] = useState(false);
 
   const day = WORKOUT_PROGRAM[activeDay];
 
@@ -46,7 +57,7 @@ export default function WorkoutTab() {
           {/* Edition toggle */}
           <div style={{ display: "flex", marginBottom: 14, background: "#13132a", borderRadius: 12, padding: 4 }}>
             {[{ id: "gym", label: "🏋️ Gym Edition" }, { id: "home", label: "🏠 Home Edition" }].map(e => (
-              <button key={e.id} onClick={() => setEdition(e.id)} style={{
+              <button key={e.id} onClick={() => { setEdition(e.id); setShowImage(false); }} style={{
                 flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
                 cursor: "pointer", fontSize: 13, fontWeight: 600,
                 background: edition === e.id ? day.color : "transparent",
@@ -54,6 +65,29 @@ export default function WorkoutTab() {
               }}>{e.label}</button>
             ))}
           </div>
+
+          {/* Reference image toggle */}
+          {EXERCISE_IMAGES[activeDay] && (
+            <div style={{ marginBottom: 14 }}>
+              <button onClick={() => setShowImage(v => !v)} style={{
+                width: "100%", padding: "10px 0", borderRadius: 12,
+                border: `1.5px solid ${day.color}40`, background: "#13132a",
+                color: day.color, fontSize: 13, fontWeight: 600, cursor: "pointer",
+              }}>
+                {showImage ? "▲ ซ่อนภาพประกอบ" : "📋 ดูภาพประกอบท่า"}
+              </button>
+              {showImage && (
+                <img
+                  src={EXERCISE_IMAGES[activeDay][edition]}
+                  alt={`${activeDay} ${edition}`}
+                  style={{
+                    marginTop: 10, width: "100%", borderRadius: 12,
+                    border: `1px solid ${day.color}30`, display: "block",
+                  }}
+                />
+              )}
+            </div>
+          )}
 
           {/* Exercise list */}
           {day[edition].map((ex, i) => (
