@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "./supabase";
-import { todayISO, WORKOUT_MODES } from "./config";
+import { todayISO, WORKOUT_MODES as DEFAULT_MODES } from "./config";
 import LoginPage from "./components/LoginPage";
 import ModeSelector from "./components/ModeSelector";
 import Summary from "./components/Summary";
 import LogTab from "./components/LogTab";
 import MealsTab from "./components/MealsTab";
+import SettingsPage from "./components/SettingsPage";
+import WorkoutTab from "./components/WorkoutTab";
 
 export default function App() {
   const [session, setSession]   = useState(null);
@@ -14,6 +16,8 @@ export default function App() {
   const [entries, setEntries]   = useState([]);
   const [activeTab, setActiveTab] = useState("log");
   const [showModeBar, setShowModeBar] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [customModes, setCustomModes] = useState(DEFAULT_MODES);
 
   const today = todayISO();
 
@@ -29,6 +33,25 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // ── Load custom goals (per-user) ───────────
+  const loadCustomGoals = useCallback(async (uid) => {
+    const { data } = await supabase
+      .from("user_goals")
+      .select("*")
+      .eq("user_id", uid)
+      .single();
+    if (data) {
+      const merged = {};
+      for (const key of Object.keys(DEFAULT_MODES)) {
+        merged[key] = {
+          ...DEFAULT_MODES[key],
+          goals: data[key] || DEFAULT_MODES[key].goals,
+        };
+      }
+      setCustomModes(merged);
+    }
+  }, []);
+
   // ── Load daily data ───────────────────────
   const loadData = useCallback(async () => {
     if (!session) return;
@@ -41,7 +64,8 @@ export default function App() {
 
     if (modeData) setMode(modeData.mode);
     if (foodData) setEntries(foodData);
-  }, [session, today]);
+    loadCustomGoals(uid);
+  }, [session, today, loadCustomGoals]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -85,7 +109,7 @@ export default function App() {
 
   if (!session) return <LoginPage />;
 
-  const m = WORKOUT_MODES[mode] || WORKOUT_MODES.rest;
+  const m = customModes[mode] || customModes.rest;
   const user = session.user;
 
   return (
@@ -106,9 +130,13 @@ export default function App() {
               {new Date().toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long" })}
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <img src={user.user_metadata?.avatar_url} alt="avatar"
               style={{ width: 32, height: 32, borderRadius: "50%", border: `2px solid ${m.color}` }} />
+            <button onClick={() => setShowSettings(true)} style={{
+              background: "none", border: "1px solid #2a2a3e", borderRadius: 8,
+              color: "#7c7c9a", fontSize: 14, padding: "6px 8px", cursor: "pointer",
+            }}>⚙️</button>
             <button onClick={handleSignOut} style={{
               background: "none", border: "1px solid #2a2a3e", borderRadius: 8,
               color: "#7c7c9a", fontSize: 11, padding: "4px 8px", cursor: "pointer",
@@ -131,19 +159,19 @@ export default function App() {
 
         {showModeBar && (
           <div style={{ marginTop: 10 }}>
-            <ModeSelector mode={mode} onSelect={(k) => { handleSetMode(k); setShowModeBar(false); }} compact />
+            <ModeSelector mode={mode} onSelect={(k) => { handleSetMode(k); setShowModeBar(false); }} compact modes={customModes} />
           </div>
         )}
       </div>
 
       {/* Summary ring */}
       <div style={{ marginTop: 16 }}>
-        <Summary entries={entries} mode={mode} />
+        <Summary entries={entries} mode={mode} modes={customModes} />
       </div>
 
       {/* Tabs */}
       <div style={{ display: "flex", margin: "0 16px 16px", background: "#13132a", borderRadius: 12, padding: 4 }}>
-        {[{ id: "log", label: "📝 บันทึก" }, { id: "meals", label: "🍱 มื้ออาหาร" }].map(t => (
+        {[{ id: "log", label: "📝 บันทึก" }, { id: "meals", label: "🍱 มื้ออาหาร" }, { id: "workout", label: "🏋️ โปรแกรม" }].map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
             flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
             cursor: "pointer", fontSize: 13, fontWeight: 600, transition: "all 0.2s",
@@ -154,10 +182,24 @@ export default function App() {
       </div>
 
       {/* Tab content */}
-      {activeTab === "log"
-        ? <LogTab entries={entries} mode={mode} onAdd={handleAdd} onDelete={handleDelete} />
-        : <MealsTab entries={entries} mode={mode} />
-      }
+      {activeTab === "log" && <LogTab entries={entries} mode={mode} onAdd={handleAdd} onDelete={handleDelete} />}
+      {activeTab === "meals" && <MealsTab entries={entries} mode={mode} modes={customModes} />}
+      {activeTab === "workout" && <WorkoutTab />}
+
+      {/* Settings modal */}
+      {showSettings && (
+        <SettingsPage
+          userId={user.id}
+          onClose={() => setShowSettings(false)}
+          onSaved={(goals) => {
+            const merged = {};
+            for (const key of Object.keys(DEFAULT_MODES)) {
+              merged[key] = { ...DEFAULT_MODES[key], goals: goals[key] };
+            }
+            setCustomModes(merged);
+          }}
+        />
+      )}
     </div>
   );
 }
