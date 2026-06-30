@@ -52,22 +52,28 @@ export default function LogTab({ entries, mode, onAdd, onDelete }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [preview, setPreview] = useState(null); // { name, serving, calories, protein, carbs, fat }
 
   const m = WORKOUT_MODES[mode] || WORKOUT_MODES.rest;
   const slotEntries = entries.filter(e => e.meal_slot === slot);
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 
-  const handleAdd = async () => {
+  const handleAnalyze = async () => {
     if (!input.trim()) return;
     setLoading(true); setError("");
     try {
       const nutrition = await analyzeFood(input, apiKey);
-      await onAdd({ ...nutrition, meal_slot: slot });
-      setInput("");
+      setPreview({ ...nutrition, meal_slot: slot });
     } catch(e) {
       setError("วิเคราะห์ไม่ได้ ลองใหม่นะครับ: " + e.message);
     }
     setLoading(false);
+  };
+
+  const handleConfirm = async () => {
+    await onAdd(preview);
+    setPreview(null);
+    setInput("");
   };
 
   const handlePhoto = async (e) => {
@@ -106,7 +112,7 @@ Format: {"name":"ชื่ออาหารภาษาไทย","serving":"�
       const data = await resp.json();
       const raw = data.content[0]?.text?.replace(/```json|```/g, "").trim();
       const nutrition = JSON.parse(raw);
-      await onAdd({ ...nutrition, meal_slot: slot });
+      setPreview({ ...nutrition, meal_slot: slot });
     } catch(e) {
       setError("วิเคราะห์รูปไม่ได้ ลองใหม่นะครับ");
     }
@@ -136,7 +142,7 @@ Format: {"name":"ชื่ออาหารภาษาไทย","serving":"�
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleAdd()}
+            onKeyDown={e => e.key === "Enter" && handleAnalyze()}
             placeholder="เช่น อกไก่ 150g, กล้วย 1 ลูก..."
             style={{
               flex: 1, background: "#0f0f1a", border: "1px solid #2a2a3e",
@@ -153,7 +159,7 @@ Format: {"name":"ชื่ออาหารภาษาไทย","serving":"�
             <input type="file" accept="image/*" capture="environment"
               onChange={handlePhoto} style={{ display: "none" }} />
           </label>
-          <button onClick={handleAdd} disabled={loading || !input.trim()} style={{
+          <button onClick={handleAnalyze} disabled={loading || !input.trim()} style={{
             padding: "11px 16px", borderRadius: 10, border: "none",
             background: loading ? "#2a2a3e" : m.color,
             color: "#fff", fontSize: 20, fontWeight: 700,
@@ -163,6 +169,53 @@ Format: {"name":"ชื่ออาหารภาษาไทย","serving":"�
         </div>
         {error && <div style={{ color: "#ff6b6b", fontSize: 12, marginTop: 6 }}>⚠️ {error}</div>}
       </div>
+
+      {/* Preview card */}
+      {preview && (
+        <div style={{ background: "#13132a", borderRadius: 16, padding: 16, marginBottom: 14, border: `1.5px solid ${m.color}40` }}>
+          <div style={{ fontSize: 12, color: m.color, fontWeight: 700, marginBottom: 10 }}>
+            🔍 ตรวจสอบสารอาหารก่อนบันทึก
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 4 }}>{preview.name}</div>
+          <div style={{ fontSize: 12, color: "#7c7c9a", marginBottom: 12 }}>📦 {preview.serving}</div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+            {[
+              { label: "Calories", key: "calories", unit: "kcal", color: m.color },
+              { label: "Protein", key: "protein", unit: "g", color: "#10AC84" },
+              { label: "Carbs", key: "carbs", unit: "g", color: "#FF9F43" },
+              { label: "Fat", key: "fat", unit: "g", color: "#a78bfa" },
+            ].map(({ label, key, unit, color }) => (
+              <div key={key} style={{ background: "#0f0f1a", borderRadius: 10, padding: "10px 12px" }}>
+                <div style={{ fontSize: 11, color: "#7c7c9a", marginBottom: 4 }}>{label}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <input
+                    type="number"
+                    value={preview[key]}
+                    onChange={e => setPreview(p => ({ ...p, [key]: Number(e.target.value) || 0 }))}
+                    style={{
+                      width: "100%", background: "transparent", border: "none",
+                      color, fontSize: 18, fontWeight: 700, outline: "none",
+                    }}
+                  />
+                  <span style={{ fontSize: 11, color: "#7c7c9a" }}>{unit}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => setPreview(null)} style={{
+              flex: 1, padding: "11px 0", borderRadius: 10, border: "1px solid #2a2a3e",
+              background: "transparent", color: "#7c7c9a", fontSize: 13, cursor: "pointer",
+            }}>ยกเลิก</button>
+            <button onClick={handleConfirm} style={{
+              flex: 2, padding: "11px 0", borderRadius: 10, border: "none",
+              background: m.color, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
+            }}>✓ บันทึกเลย</button>
+          </div>
+        </div>
+      )}
 
       {slotEntries.length > 0 ? (
         <div style={{ background: "#13132a", borderRadius: 16, padding: 16 }}>
