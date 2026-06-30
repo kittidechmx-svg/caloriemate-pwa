@@ -14,6 +14,7 @@ function extractGrams(text, food) {
 }
 
 async function analyzeFoodWithAI(text, apiKey) {
+  if (!apiKey) throw new Error("ไม่พบ API Key (VITE_ANTHROPIC_API_KEY)");
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -23,15 +24,19 @@ async function analyzeFoodWithAI(text, apiKey) {
       "anthropic-dangerous-direct-browser-access": "true"
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: "claude-haiku-4-5-20251001",
       max_tokens: 400,
-      system: "วิเคราะห์อาหารและตอบเป็น JSON เท่านั้น format: {\"name\":\"ชื่อภาษาไทย\",\"serving\":\"ปริมาณ\",\"calories\":0,\"protein\":0,\"carbs\":0,\"fat\":0}",
+      system: "วิเคราะห์อาหารและตอบเป็น JSON เท่านั้น ห้ามมี markdown format: {\"name\":\"ชื่อภาษาไทย\",\"serving\":\"ปริมาณ\",\"calories\":0,\"protein\":0,\"carbs\":0,\"fat\":0}",
       messages: [{ role: "user", content: "วิเคราะห์: " + text }],
     }),
   });
   const data = await res.json();
+  if (!res.ok || !data.content) {
+    throw new Error(data.error?.message || `API error ${res.status}`);
+  }
   const txt = data.content[0].text;
   const match = txt.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("AI ตอบผิด format");
   return JSON.parse(match[0]);
 }
 
