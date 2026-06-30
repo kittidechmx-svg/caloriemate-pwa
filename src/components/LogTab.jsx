@@ -129,17 +129,20 @@ export default function LogTab({ entries, mode, onAdd, onDelete }) {
             role: "user",
             content: [
               { type: "image", source: { type: "base64", media_type: file.type, data: b64 } },
-              { type: "text", text: "อาหารในรูปนี้คืออะไร มีสารอาหารเท่าไร?" },
+              { type: "text", text: "ดูจากรูปนี้: อาหารคืออะไร ประมาณปริมาณที่เห็น แล้วคำนวณสารอาหารให้แม่นยำ" },
             ],
           }],
         }),
       });
       const data = await resp.json();
+      if (!resp.ok || !data.content) throw new Error(data.error?.message || `API error ${resp.status}`);
       const raw = data.content[0]?.text?.replace(/```json|```/g, "").trim();
-      const nutrition = JSON.parse(raw);
+      const match = raw?.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error("AI ตอบผิด format");
+      const nutrition = JSON.parse(match[0]);
       setPreview({ ...nutrition, meal_slot: slot });
     } catch(e) {
-      setError("วิเคราะห์รูปไม่ได้ ลองใหม่นะครับ");
+      setError("วิเคราะห์รูปไม่ได้: " + e.message);
     }
     setPhotoLoading(false);
     e.target.value = "";
