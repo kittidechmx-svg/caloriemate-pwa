@@ -23,12 +23,11 @@ export default function App() {
 
   // ── Auth ──────────────────────────────────
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    // onAuthStateChange fires INITIAL_SESSION first (existing session or null),
+    // then SIGNED_IN after OAuth redirect — reliable on mobile too
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
+      setLoading(false);
     });
     return () => subscription.unsubscribe();
   }, []);
