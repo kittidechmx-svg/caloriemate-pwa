@@ -23,31 +23,13 @@ export default function App() {
 
   // ── Auth ──────────────────────────────────
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
-      setSession(s);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       setLoading(false);
-      // Save tokens to cookie so iOS PWA can pick them up after Safari OAuth
-      // (Safari and PWA share cookies but NOT localStorage)
-      if (event === 'SIGNED_IN' && s) {
-        const exp = new Date(Date.now() + 5 * 60 * 1000).toUTCString();
-        document.cookie = `_cm_at=${s.access_token}; path=/; expires=${exp}; Secure; SameSite=Lax`;
-        document.cookie = `_cm_rt=${s.refresh_token}; path=/; expires=${exp}; Secure; SameSite=Lax`;
-      }
     });
-
-    // Restore session from cookie if present (for iOS PWA after OAuth in Safari)
-    const cookies = Object.fromEntries(
-      document.cookie.split('; ').filter(Boolean).map(c => {
-        const [k, ...v] = c.split('=');
-        return [k.trim(), v.join('=').trim()];
-      })
-    );
-    if (cookies._cm_at && cookies._cm_rt) {
-      document.cookie = '_cm_at=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie = '_cm_rt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      supabase.auth.setSession({ access_token: cookies._cm_at, refresh_token: cookies._cm_rt });
-    }
-
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s);
+    });
     return () => subscription.unsubscribe();
   }, []);
 
